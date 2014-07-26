@@ -3,7 +3,8 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
--define(EMPTY_ROW, [' ', ' ', ' ']).
+-define(EMPTY_CELL, ' ').
+-define(EMPTY_ROW, [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]).
 
 %%% public functions
 
@@ -34,7 +35,7 @@ available_positions_by_row(RowNumber, Row) ->
 
 available_positions_by_row_acc(_RowNumber, [], Acc, _Position) ->
   lists:reverse(Acc);
-available_positions_by_row_acc(RowNumber, [' '|Tail], Acc, Position) ->
+available_positions_by_row_acc(RowNumber, [?EMPTY_CELL|Tail], Acc, Position) ->
   available_positions_by_row_acc(RowNumber, Tail, [{RowNumber, Position}|Acc], Position + 1);
 available_positions_by_row_acc(RowNumber, [_Head|Tail], Acc, Position) ->
   available_positions_by_row_acc(RowNumber, Tail, Acc, Position + 1).
@@ -72,9 +73,9 @@ update_row(Row, Player, Position) ->
 
 update_row_acc([], _Player, _Position, Acc, _PosCounter) ->
   lists:reverse(Acc);
-update_row_acc([' '|Tail], Player, Position, Acc, PosCounter) when Position == PosCounter ->
+update_row_acc([?EMPTY_CELL|Tail], Player, Position, Acc, PosCounter) when Position == PosCounter ->
   update_row_acc(Tail, Player, Position, [Player|Acc], PosCounter + 1);
-update_row_acc([Head|_Tail], _Player, Position, _Acc, PosCounter) when (Position == PosCounter) and (Head =/= ' ') ->
+update_row_acc([Head|_Tail], _Player, Position, _Acc, PosCounter) when (Position == PosCounter) and (Head =/= ?EMPTY_CELL) ->
   throw(illegal_move);
 update_row_acc([Head|Tail], Player, Position, Acc, PosCounter) ->
   update_row_acc(Tail, Player, Position, [Head|Acc], PosCounter + 1).
@@ -84,35 +85,35 @@ update_row_acc([Head|Tail], Player, Position, Acc, PosCounter) ->
 
 should_return_new_board_test() ->
   ?assertEqual(
-     [[' ', ' ', ' '], [' ', ' ', ' '], [' ', ' ', ' ']],
+     [[?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL], [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL], [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]],
      board:new()
   ).
 
 should_be_possible_to_make_legal_move_one_the_first_row_test() ->
   Board = board:new(),
   ?assertEqual(
-     [['X', ' ', ' '], [' ', ' ', ' '], [' ', ' ', ' ']],
+     [['X', ?EMPTY_CELL, ?EMPTY_CELL], [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL], [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]],
      board:make_move(Board, 'X', 1, 1)
   ).
 
 should_be_possible_to_make_legal_move_one_the_second_row_test() ->
   Board = board:new(),
   ?assertEqual(
-     [[' ', ' ', ' '], [' ', 'X', ' '], [' ', ' ', ' ']],
+     [[?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL], [?EMPTY_CELL, 'X', ?EMPTY_CELL], [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]],
      board:make_move(Board, 'X', 2, 2)
   ).
 
 should_be_possible_to_make_legal_move_one_the_third_row_test() ->
   Board = board:new(),
   ?assertEqual(
-     [[' ', ' ', ' '], [' ', ' ', ' '], [' ', ' ', 'X']],
+     [[?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL], [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL], [?EMPTY_CELL, ?EMPTY_CELL, 'X']],
      board:make_move(Board, 'X', 3, 3)
   ).
 
 should_be_possible_to_make_second_legal_move_test() ->
-  Board = [['Y', ' ', ' '], [' ', ' ', ' '], [' ', ' ', ' ']],
+  Board = [['Y', ?EMPTY_CELL, ?EMPTY_CELL], [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL], [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]],
   ?assertEqual(
-     [['Y', 'X', ' '], [' ', ' ', ' '], [' ', ' ', ' ']],
+     [['Y', 'X', ?EMPTY_CELL], [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL], [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]],
      board:make_move(Board, 'X', 1, 2)
   ).
 
@@ -126,52 +127,52 @@ should_reject_illegal_move_test() ->
 
 should_detect_winning_row_test() ->
   Board1 = [['X', 'X', 'X'],
-            [' ', ' ', ' '],
-            [' ', ' ', ' ']],
-  Board2 = [[' ', ' ', ' '],
+            [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
+            [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]],
+  Board2 = [[?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
             ['X', 'X', 'X'],
-            [' ', ' ', ' ']],
-  Board3 = [[' ', ' ', ' '],
-            [' ', ' ', ' '],
+            [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]],
+  Board3 = [[?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
+            [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
             ['X', 'X', 'X']],
   ?assert(board:has_been_won_by(Board1, 'X')),
   ?assert(board:has_been_won_by(Board2, 'X')),
   ?assert(board:has_been_won_by(Board3, 'X')).
 
 should_detect_winning_column_test() ->
-  Board1 = [['X', ' ', ' '],
-            ['X', ' ', ' '],
-            ['X', ' ', ' ']],
-  Board2 = [[' ', 'X', ' '],
-            [' ', 'X', ' '],
-            [' ', 'X', ' ']],
-  Board3 = [[' ', ' ', 'X'],
-            [' ', ' ', 'X'],
-            [' ', ' ', 'X']],
+  Board1 = [['X', ?EMPTY_CELL, ?EMPTY_CELL],
+            ['X', ?EMPTY_CELL, ?EMPTY_CELL],
+            ['X', ?EMPTY_CELL, ?EMPTY_CELL]],
+  Board2 = [[?EMPTY_CELL, 'X', ?EMPTY_CELL],
+            [?EMPTY_CELL, 'X', ?EMPTY_CELL],
+            [?EMPTY_CELL, 'X', ?EMPTY_CELL]],
+  Board3 = [[?EMPTY_CELL, ?EMPTY_CELL, 'X'],
+            [?EMPTY_CELL, ?EMPTY_CELL, 'X'],
+            [?EMPTY_CELL, ?EMPTY_CELL, 'X']],
   ?assert(board:has_been_won_by(Board1, 'X')),
   ?assert(board:has_been_won_by(Board2, 'X')),
   ?assert(board:has_been_won_by(Board3, 'X')).
 
 should_detect_winning_diagonal_test() ->
-  Board1 = [['X', ' ', ' '],
-            [' ', 'X', ' '],
-            [' ', ' ', 'X']],
-  Board2 = [[' ', ' ', 'X'],
-            [' ', 'X', ' '],
-            ['X', ' ', ' ']],
+  Board1 = [['X', ?EMPTY_CELL, ?EMPTY_CELL],
+            [?EMPTY_CELL, 'X', ?EMPTY_CELL],
+            [?EMPTY_CELL, ?EMPTY_CELL, 'X']],
+  Board2 = [[?EMPTY_CELL, ?EMPTY_CELL, 'X'],
+            [?EMPTY_CELL, 'X', ?EMPTY_CELL],
+            ['X', ?EMPTY_CELL, ?EMPTY_CELL]],
   ?assert(board:has_been_won_by(Board1, 'X')),
   ?assert(board:has_been_won_by(Board2, 'X')).
 
 should_detect_winning_minor_diagonal_with_a_busy_board_test() ->
   Board = [['X', 'Y', 'X'],
            ['Y', 'X', 'Y'],
-           ['X', ' ', ' ']],
+           ['X', ?EMPTY_CELL, ?EMPTY_CELL]],
   ?assert(board:has_been_won_by(Board, 'X')).
 
 should_return_available_positions_test() ->
-  Board = [['X', ' ', ' '],
-            [' ', 'X', ' '],
-            [' ', ' ', 'X']],
+  Board = [['X', ?EMPTY_CELL, ?EMPTY_CELL],
+            [?EMPTY_CELL, 'X', ?EMPTY_CELL],
+            [?EMPTY_CELL, ?EMPTY_CELL, 'X']],
   ?assertEqual(
      [{1, 2}, {1, 3}, {2, 1}, {2, 3}, {3, 1}, {3, 2}],
      board:available_positions(Board)
