@@ -22,9 +22,9 @@ stop(Pid) ->
 loop(Turn, [PlayerOne, PlayerTwo], Board) ->
   Players = [PlayerOne, PlayerTwo],
   receive
-    {request, Pid, stop} ->
+    {request, {Ref, Pid}, stop} ->
       io:format("The game between ~p and ~p is now closed.~n The board is ~p~n", [PlayerOne, PlayerTwo, Board]),
-      reply(Pid, ok)
+      reply(Pid, Ref, ok)
   after
     ?INTERVAL_MS ->
       AvailablePositions = board:available_positions(Board),
@@ -48,13 +48,18 @@ loop(Turn, [PlayerOne, PlayerTwo], Board) ->
   end.
 
 call(Pid, Msg) ->
-  Pid ! {request, self(), Msg},
+  Ref = erlang:monitor(process, Pid),
+  Pid ! {request, {Ref, self()}, Msg},
   receive
-    {reply, Reply} -> Reply
+    {reply, Ref, Reply} ->
+      erlang:demonitor(Ref),
+      Reply;
+    {'DOWN', Ref, process, Pid, _Reason} ->
+      error(player_dead) %% not sure this is the best way to terminate a game
   end.
 
-reply(Pid, Reply) ->
-  Pid ! {reply, Reply}.
+reply(Pid, Ref, Reply) ->
+  Pid ! {reply, Ref, Reply}.
 
 -ifdef(TEST).
 

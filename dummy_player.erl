@@ -22,24 +22,29 @@ next_move(PlayerPid, AvailableMoves) ->
 
 loop(Name) ->
   receive
-    {request, Pid, stop} ->
+    {request, {Ref, Pid}, stop} ->
       io:format("Player ~p is going down~n", [Name]),
-      reply(Pid, ok);
-    {request, Pid, {next_move, AvailableMoves}} ->
+      reply(Pid, Ref, ok);
+    {request, {Ref, Pid}, {next_move, AvailableMoves}} ->
       Move = random_move(AvailableMoves),
       io:format("Player ~p is choosing ~p~n", [Name, Move]),
-      reply(Pid, Move),
+      reply(Pid, Ref, Move),
       loop(Name)
   end.
 
 call(Pid, Msg) ->
-  Pid ! {request, self(), Msg},
+  Ref = erlang:monitor(process, Pid),
+  Pid ! {request, {Ref, self()}, Msg},
   receive
-    {reply, Reply} -> Reply
+    {reply, Ref, Reply} ->
+      erlang:demonitor(Ref),
+      Reply;
+    {'DOWN', Ref, process, Pid, _Reason} ->
+      error(player_dead) %% not sure this is the best way to terminate a game
   end.
 
-reply(Pid, Reply) ->
-  Pid ! {reply, Reply}.
+reply(Pid, Ref, Reply) ->
+  Pid ! {reply, Ref, Reply}.
 
 random_move(AvailableMoves) ->
   <<A1, A2, A3>> = crypto:strong_rand_bytes(3),
