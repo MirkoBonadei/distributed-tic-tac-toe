@@ -27,16 +27,23 @@ loop(Turn, [PlayerOne, PlayerTwo], Board) ->
       reply(Pid, ok)
   after
     ?INTERVAL_MS ->
-      PlayerInCharge = lists:nth((Turn rem 2) + 1, Players),
-      io:format("It is ~p turn...~n", [PlayerInCharge]),
-      {X, Y} = dummy_player:next_move(PlayerInCharge, board:available_positions(Board)),
-      NewBoard = board:make_move(Board, PlayerInCharge, X, Y),
-      io:format("The new board is ~p~n", [NewBoard]),
-      case board:has_been_won_by(NewBoard, PlayerInCharge) of
-        true ->
-          io:format("Player ~p has won this tic tac toe~n", [PlayerInCharge]);
-        false ->
-          loop(Turn + 1, Players, NewBoard)
+      AvailablePositions = board:available_positions(Board),
+
+      case AvailablePositions of
+        [] ->
+          io:format("The game between ~p and ~p is a draw~n", [PlayerOne, PlayerTwo]);
+        _ ->
+          PlayerInCharge = lists:nth((Turn rem 2) + 1, Players),
+          io:format("It is ~p turn...~n", [PlayerInCharge]),
+          {X, Y} = dummy_player:next_move(PlayerInCharge, AvailablePositions),
+          NewBoard = board:make_move(Board, PlayerInCharge, X, Y),
+          io:format("The new board is ~p~n", [NewBoard]),
+          case board:has_been_won_by(NewBoard, PlayerInCharge) of
+            true ->
+              io:format("Player ~p has won this tic tac toe~n", [PlayerInCharge]);
+            false ->
+              loop(Turn + 1, Players, NewBoard)
+          end
       end
   end.
 
