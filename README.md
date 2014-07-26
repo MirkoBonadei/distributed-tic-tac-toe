@@ -14,7 +14,7 @@ _Write a program that allows two players to have a game of Tic-Tac-Toe remotely.
 ###to-do list:
 * code of the game loop should be refactored, it is not so clear at the moment
 * the outcome is not reported to both players at the moment
-* modules `game` and `dummy_player` are not automatically tested
+* modules `game` is not automatically tested
 * board is 3x3 and would be really difficult to make it NxN. Refactoring is needed
 * project directory structure is flat (but I am waiting for the OTP way)
 * add a build tool to compile and test the code
