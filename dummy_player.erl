@@ -46,6 +46,28 @@ random_move(AvailableMoves) ->
   random:seed(A1, A2, A3),
   lists:nth(random:uniform(length(AvailableMoves)), AvailableMoves).
 
-
 -ifdef(TEST).
+
+dummy_player_should_be_killed_in_case_of_stop_message_test() ->
+  DummyPid = dummy_player:start("dummy name"),
+  ?assert(erlang:is_process_alive(DummyPid)),
+  MonitorRef = monitor(process, DummyPid),
+  dummy_player:stop(DummyPid),
+
+  %% maybe an ?assert(erlang:is_process_alive(DummyPid)) is better
+
+  receive
+    {'DOWN', MonitorRef, process, DummyPid, normal} ->
+      ?assert(true)
+  after
+    1000 ->
+      ?assert(false)
+  end.
+
+dummy_player_should_choose_the_next_move_among_the_ones_available_test() ->
+  DummyPid = dummy_player:start("dummy name"),
+  AvailableMoves = [{1, 1}, {2, 1}, {3, 3}],
+  Move = dummy_player:next_move(DummyPid, AvailableMoves),
+  ?assert(lists:any(fun(Elem) -> Elem == Move end, AvailableMoves)).
+
 -endif.
