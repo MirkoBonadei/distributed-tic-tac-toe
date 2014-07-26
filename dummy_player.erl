@@ -45,5 +45,4 @@ dummy_move([FirstAvailablePosition|_RestOfAvailablePositions]) ->
 
 
 -ifdef(TEST).
-
 -endif.
