@@ -26,7 +26,7 @@ loop(Name) ->
       io:format("Player ~p is going down~n", [Name]),
       reply(Pid, ok);
     {request, Pid, {next_move, AvailableMoves}} ->
-      Move = dummy_move(AvailableMoves),
+      Move = random_move(AvailableMoves),
       io:format("Player ~p is choosing ~p~n", [Name, Move]),
       reply(Pid, Move),
       loop(Name)
@@ -41,8 +41,10 @@ call(Pid, Msg) ->
 reply(Pid, Reply) ->
   Pid ! {reply, Reply}.
 
-dummy_move([FirstAvailablePosition|_RestOfAvailablePositions]) ->
-  FirstAvailablePosition.
+random_move(AvailableMoves) ->
+  <<A1, A2, A3>> = crypto:strong_rand_bytes(3),
+  random:seed(A1, A2, A3),
+  lists:nth(random:uniform(length(AvailableMoves)), AvailableMoves).
 
 
 -ifdef(TEST).
