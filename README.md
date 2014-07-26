@@ -12,9 +12,8 @@ These are the instructions:
 _Write a program that allows two players to have a game of Tic-Tac-Toe remotely. The program should know whose turn it is and enforce taking it in turns to make moves. The program should know whether a move made by a player is legal (i.e., is that square empty?), and be capable of detecting when the game is won or drawn. The outcomes should be reported to both players along with the current state of the game (e.g., by refreshing the screen)._
 
 ###to-do list:
-* add a smarter algorithm to choose the next move in the dummy_player. Now it is too dummy... :-)
 * complete the illegal move detection (what if a player makes a move which is not inside the board?)
-* add game drawn detection
+* add game draw detection
 * the outcome is not reported to both players at the moment
 * modules `game` and `dummy_player` are not automatically tested
 * board is 3x3 and would be really difficult to make it NxN. Refactoring is needed
