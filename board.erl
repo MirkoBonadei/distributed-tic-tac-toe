@@ -5,20 +5,17 @@
 
 -define(EMPTY_CELL, ' ').
 -define(EMPTY_ROW, [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]).
+-define(NUMBER_OF_ROWS, 3).
+-define(NUMBER_OF_COLUMNS, 3).
 
 %%% public functions
 
 new() -> [?EMPTY_ROW, ?EMPTY_ROW, ?EMPTY_ROW].
 
-make_move([Row1, Row2, Row3], Player, 1, Y) ->
-  NewRow1 = update_row(Row1, Player, Y),
-  [NewRow1, Row2, Row3];
-make_move([Row1, Row2, Row3], Player, 2, Y) ->
-  NewRow2 = update_row(Row2, Player, Y),
-  [Row1, NewRow2, Row3];
-make_move([Row1, Row2, Row3], Player, 3, Y) ->
-  NewRow3 = update_row(Row3, Player, Y),
-  [Row1, Row2, NewRow3].
+make_move(Board, Player, X, Y) when (X =< ?NUMBER_OF_ROWS) and (Y =< ?NUMBER_OF_COLUMNS) ->
+  make_move_helper(Board, Player, X, Y);
+make_move(_Board, _Player, _X, _Y) ->
+  throw(illegal_move).
 
 has_been_won_by(Board, Player) ->
   is_there_a_winning_row_for_player(Board, Player) orelse
@@ -29,6 +26,16 @@ available_positions([Row1, Row2, Row3]) ->
   available_positions_by_row(1, Row1) ++ available_positions_by_row(2, Row2) ++ available_positions_by_row(3, Row3).
 
 %%% private functions
+
+make_move_helper([Row1, Row2, Row3], Player, 1, Y) ->
+  NewRow1 = update_row(Row1, Player, Y),
+  [NewRow1, Row2, Row3];
+make_move_helper([Row1, Row2, Row3], Player, 2, Y) ->
+  NewRow2 = update_row(Row2, Player, Y),
+  [Row1, NewRow2, Row3];
+make_move_helper([Row1, Row2, Row3], Player, 3, Y) ->
+  NewRow3 = update_row(Row3, Player, Y),
+  [Row1, Row2, NewRow3].
 
 available_positions_by_row(RowNumber, Row) ->
   available_positions_by_row_acc(RowNumber, Row, [], 1).
@@ -123,6 +130,20 @@ should_reject_illegal_move_test() ->
   ?assertThrow(
      illegal_move,
      board:make_move(BoardTime1, 'Y', 3, 3)
+  ).
+
+x_must_be_within_the_borders_of_the_board_wneh_a_move_is_made_test() ->
+  Board = board:new(),
+  ?assertThrow(
+     illegal_move,
+     board:make_move(Board, 'Y', 4, 1)
+  ).
+
+y_must_be_within_the_borders_of_the_board_wneh_a_move_is_made_test() ->
+  Board = board:new(),
+  ?assertThrow(
+     illegal_move,
+     board:make_move(Board, 'Y', 1, 4)
   ).
 
 should_detect_winning_row_test() ->
