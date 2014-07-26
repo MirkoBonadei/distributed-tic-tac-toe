@@ -58,4 +58,21 @@ reply(Pid, Reply) ->
 
 -ifdef(TEST).
 
+game_should_be_killed_in_case_of_stop_message_test() ->
+  GamePid = game:start(
+    dummy_player:start("Darth Vader"),
+    dummy_player:start("Luke Skywalker")
+  ),
+  ?assert(erlang:is_process_alive(GamePid)),
+  MonitorRef = monitor(process, GamePid),
+  game:stop(GamePid),
+  %% ?assert(erlang:is_process_alive(GamePid)).
+  receive
+    {'DOWN', MonitorRef, process, GamePid, normal} ->
+      ?assert(true)
+  after
+    1000 ->
+      ?assert(false)
+  end.
+
 -endif.

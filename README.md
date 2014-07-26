@@ -18,6 +18,7 @@ _Write a program that allows two players to have a game of Tic-Tac-Toe remotely.
 * board is 3x3 and would be really difficult to make it NxN. Refactoring is needed
 * project directory structure is flat (but I am waiting for the OTP way)
 * add a build tool to compile and test the code
+* mock game tests. now I am injecting real processes but this is wrong
 
 ### usage
 The usage of the game is really raw in this first phase of the project:
