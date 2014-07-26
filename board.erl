@@ -1,9 +1,11 @@
 -module(board).
--export([new/0, make_move/4, has_been_won_by/2]).
+-export([new/0, make_move/4, has_been_won_by/2, available_positions/1]).
 
 -include_lib("eunit/include/eunit.hrl").
 
 -define(EMPTY_ROW, [' ', ' ', ' ']).
+
+%%% public functions
 
 new() -> [?EMPTY_ROW, ?EMPTY_ROW, ?EMPTY_ROW].
 
@@ -21,6 +23,21 @@ has_been_won_by(Board, Player) ->
   is_there_a_winning_row_for_player(Board, Player) orelse
   is_there_a_winning_column_for_player(Board, Player) orelse
   is_there_a_winning_diagonal_for_player(Board, Player).
+
+available_positions([Row1, Row2, Row3]) ->
+  available_positions_by_row(1, Row1) ++ available_positions_by_row(2, Row2) ++ available_positions_by_row(3, Row3).
+
+%%% private functions
+
+available_positions_by_row(RowNumber, Row) ->
+  available_positions_by_row_acc(RowNumber, Row, [], 1).
+
+available_positions_by_row_acc(_RowNumber, [], Acc, _Position) ->
+  lists:reverse(Acc);
+available_positions_by_row_acc(RowNumber, [' '|Tail], Acc, Position) ->
+  available_positions_by_row_acc(RowNumber, Tail, [{RowNumber, Position}|Acc], Position + 1);
+available_positions_by_row_acc(RowNumber, [_Head|Tail], Acc, Position) ->
+  available_positions_by_row_acc(RowNumber, Tail, Acc, Position + 1).
 
 is_there_a_winning_row_for_player(Board, Player) ->
   lists:any(fun(Row) -> lists:all(fun(Pos) -> Pos == Player end, Row) end, Board).
@@ -137,5 +154,14 @@ should_detect_winning_diagonal_test() ->
             ['X', ' ', ' ']],
   ?assert(board:has_been_won_by(Board1, 'X')),
   ?assert(board:has_been_won_by(Board2, 'X')).
+
+should_return_available_positions_test() ->
+  Board = [['X', ' ', ' '],
+            [' ', 'X', ' '],
+            [' ', ' ', 'X']],
+  ?assertEqual(
+     [{1, 2}, {1, 3}, {2, 1}, {2, 3}, {3, 1}, {3, 2}],
+     board:available_positions(Board)
+  ).
 
 -endif.
