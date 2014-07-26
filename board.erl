@@ -74,10 +74,10 @@ update_row_acc([], _Player, _Position, Acc, _PosCounter) ->
   lists:reverse(Acc);
 update_row_acc([' '|Tail], Player, Position, Acc, PosCounter) when Position == PosCounter ->
   update_row_acc(Tail, Player, Position, [Player|Acc], PosCounter + 1);
-update_row_acc([Head|Tail], Player, Position, Acc, PosCounter) when Head == ' ' ->
-  update_row_acc(Tail, Player, Position, [Head|Acc], PosCounter + 1);
-update_row_acc(_Board, _Player, _Position, _Acc, _PosCounter) ->
-  throw(illegal_move).
+update_row_acc([Head|_Tail], _Player, Position, _Acc, PosCounter) when (Position == PosCounter) and (Head =/= ' ') ->
+  throw(illegal_move);
+update_row_acc([Head|Tail], Player, Position, Acc, PosCounter) ->
+  update_row_acc(Tail, Player, Position, [Head|Acc], PosCounter + 1).
 
 
 -ifdef(TEST).
@@ -107,6 +107,13 @@ should_be_possible_to_make_legal_move_one_the_third_row_test() ->
   ?assertEqual(
      [[' ', ' ', ' '], [' ', ' ', ' '], [' ', ' ', 'X']],
      board:make_move(Board, 'X', 3, 3)
+  ).
+
+should_be_possible_to_make_second_legal_move_test() ->
+  Board = [['Y', ' ', ' '], [' ', ' ', ' '], [' ', ' ', ' ']],
+  ?assertEqual(
+     [['Y', 'X', ' '], [' ', ' ', ' '], [' ', ' ', ' ']],
+     board:make_move(Board, 'X', 1, 2)
   ).
 
 should_reject_illegal_move_test() ->
@@ -154,6 +161,12 @@ should_detect_winning_diagonal_test() ->
             ['X', ' ', ' ']],
   ?assert(board:has_been_won_by(Board1, 'X')),
   ?assert(board:has_been_won_by(Board2, 'X')).
+
+should_detect_winning_minor_diagonal_with_a_busy_board_test() ->
+  Board = [['X', 'Y', 'X'],
+           ['Y', 'X', 'Y'],
+           ['X', ' ', ' ']],
+  ?assert(board:has_been_won_by(Board, 'X')).
 
 should_return_available_positions_test() ->
   Board = [['X', ' ', ' '],
