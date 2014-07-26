@@ -28,7 +28,8 @@ loop(Name) ->
     {request, Pid, {next_move, AvailableMoves}} ->
       Move = dummy_move(AvailableMoves),
       io:format("Player ~p is choosing ~p~n", [Name, Move]),
-      reply(Pid, Move)
+      reply(Pid, Move),
+      loop(Name)
   end.
 
 call(Pid, Msg) ->
