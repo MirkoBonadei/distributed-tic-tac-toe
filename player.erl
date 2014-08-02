@@ -10,6 +10,25 @@
 -behaviour(gen_server).
 
 -define(TEST_TIMEOUT, 1000).
+-define(assertProcessDownAfter(Pid, Timeout, Callback),
+        begin
+        ((fun () ->
+            Ref = erlang:monitor(process, Pid),
+            Callback(),
+            receive
+              {'DOWN', Ref, process, Pid, normal} ->
+                ok
+            after
+              Timeout ->
+                erlang:error({assertion_failed,
+                              [{module, ?MODULE},
+                               {line, ?LINE},
+                               {expression, (??Callback)},
+                               {expected, process_terminated},
+                               {value, process_is_still_alive}]})
+            end
+          end)())
+        end).
 
 %%% Player API
 
@@ -43,16 +62,10 @@ terminate(Reason, Name) ->
 player_should_be_created_and_destroied_test() ->
   {ok, PlayerPid} = player:create("darth-vader"),
   ?assert(erlang:is_process_alive(PlayerPid)),
-
-  Ref = erlang:monitor(process, PlayerPid),
-  player:destroy(PlayerPid),
-  receive
-    {'DOWN', Ref, process, PlayerPid, normal} ->
-      ?assert(true)
-  after
-    ?TEST_TIMEOUT ->
-      ?assert(false)
-  end.
-
+  ?assertProcessDownAfter(
+     PlayerPid,
+     ?TEST_TIMEOUT,
+     fun() -> player:destroy(PlayerPid) end
+  ).
 
 -endif.
