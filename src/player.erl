@@ -41,7 +41,7 @@ terminate(Reason, Name) ->
 
 -ifdef(TEST).
 
-player_should_be_created_and_destroied_test() ->
+player_should_be_created_and_destroyed_test() ->
   {ok, PlayerPid} = player:create("darth-vader"),
   ?assert(erlang:is_process_alive(PlayerPid)),
   ?assertProcessDownAfter(
