@@ -86,4 +86,46 @@ player_should_be_created_and_destroyed_test() ->
      fun() -> player:destroy(PlayerPid) end
   ).
 
+player_should_ask_game_to_join_test() ->
+    {ok, GamePid} = game:create(),
+    {ok, PlayerPid} = player:create("luke"),
+
+    ok = meck:new(game, [passthrough]),
+    meck:expect(
+      game,
+      join,
+      fun(PidOne, PidTwo) when is_pid(PidOne) and is_pid(PidTwo) ->
+          {ok, welcome};
+         (_, _) -> error(wrong_parameter_type)
+      end
+    ),
+
+    player:join(PlayerPid, GamePid),
+
+    ?assert(meck:called(game, join, [GamePid, PlayerPid])),
+    ?assert(meck:validate(game)),
+
+    ok = meck:unload(game),
+    game:destroy(GamePid),
+    player:destroy(PlayerPid).
+  % {setup,
+  %  fun() ->
+  %      {ok, GamePid} = game:create(),
+  %      {ok, PlayerPid} = player:create("luke"),
+  %      ok = meck:new(game, [passthrough]),
+  %      [GamePid, PlayerPid]
+  %   end,
+  %  fun([GamePid, PlayerPid]) ->
+  %      ok = meck:unload(game),
+  %      game:destroy(GamePid),
+  %      player:destroy(PlayerPid)
+  %  end,
+  %  fun([GamePid, PlayerPid]) ->
+  %      meck:expect(game, join, fun(_, _) -> {ok, welcome} end),
+  %      player:join(PlayerPid, GamePid),
+  %      ?_assert(meck:called(game, join, [GamePid, PlayerPid])),
+  %      ?_assert(meck:validate(game))
+  %  end
+  % }.
+
 -endif.
