@@ -1,5 +1,4 @@
-distributed-tic-tac-toe
-=======================
+## Distributed Tic-Tac-Toe
 
 Distributed Tic-Tac-Toe kata in Erlang.
 
@@ -11,18 +10,18 @@ These are the instructions:
 
 _Write a program that allows two players to have a game of Tic-Tac-Toe remotely. The program should know whose turn it is and enforce taking it in turns to make moves. The program should know whether a move made by a player is legal (i.e., is that square empty?), and be capable of detecting when the game is won or drawn. The outcomes should be reported to both players along with the current state of the game (e.g., by refreshing the screen)._
 
-###to-do list:
+### TODO:
 * Learn how to use test generators in EUnit
 * Use maps for game state
 * code of the game loop should be refactored, it is not so clear at the moment
 * modules `game` is not automatically tested
-* board is 3x3 and would be really difficult to make it NxN. Refactoring is needed
+* board is 3 x 3 and would be really difficult to make it N x N. Refactoring is needed
 * project directory structure is flat (but I am waiting for the OTP way)
 * add a build tool to compile and test the code
 * mock game tests. Now I am injecting real processes but this is wrong
 * Test player join with QuickCheck
 
-### usage
+### USAGE
 The usage of the game is really raw in this first phase of the project:
 
 ```erlang
