@@ -5,7 +5,7 @@ Distributed Tic-Tac-Toe kata in Erlang.
 
 The goal of this repository is to grow an Erlang project from `git init` to a nice end-to-end experience, passing from a raw code base to a more robust and OTP compliant one.
 
-The inspeiration for the Tic-Tac-Toe comes from this blog post of [_Jason Gorman_](http://codemanship.co.uk/parlezuml/blog/?postid=1196).
+The inspiration for the Tic-Tac-Toe comes from this blog post of [_Jason Gorman_](http://codemanship.co.uk/parlezuml/blog/?postid=1196).
 
 These are the instructions:
 
@@ -19,8 +19,8 @@ _Write a program that allows two players to have a game of Tic-Tac-Toe remotely.
 * board is 3x3 and would be really difficult to make it NxN. Refactoring is needed
 * project directory structure is flat (but I am waiting for the OTP way)
 * add a build tool to compile and test the code
-* mock game tests. now I am injecting real processes but this is wrong
-* Test player join with Quickcheck
+* mock game tests. Now I am injecting real processes but this is wrong
+* Test player join with QuickCheck
 
 ### usage
 The usage of the game is really raw in this first phase of the project:
