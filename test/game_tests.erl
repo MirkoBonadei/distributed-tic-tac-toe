@@ -1,93 +1,47 @@
 -module(game_tests).
-
 -include_lib("eunit/include/eunit.hrl").
--include_lib("include/testing_macros.hrl").
 
--define(TEST_TIMEOUT, 1000).
-
-game_should_be_created_and_destroyed_test() ->
-  {ok, GamePid} = game:create(),
-  ?assert(erlang:is_process_alive(GamePid)),
-  ?assertProcessDownAfter(
-     GamePid,
-     ?TEST_TIMEOUT,
-     fun() -> game:destroy(GamePid) end
+%%% WAITING_FOR_PLAYERS
+when_in_waiting_for_players_a_player_can_join_test() ->
+  Pid = self(),
+  ?assertMatch(
+     {next_state, waiting_for_players, [Pid]},
+     game:waiting_for_players({join, Pid}, Pid, [])
   ).
 
-player_should_be_able_to_join_only_once_test_() ->
-  {setup,
-   fun() ->
-       {ok, Game} = game:create(),
-       {ok, PlayerOne} = player:create("player one"),
-       [Game, PlayerOne]
-   end,
-   fun([Game, PlayerOne]) ->
-       game:destroy(Game),
-       player:destroy(PlayerOne)
-   end,
-   fun([Game, PlayerOne]) ->
-       [?_assertMatch({ok, welcome}, game:join(Game, PlayerOne)),
-        ?_assertMatch({error, already_joined}, game:join(Game, PlayerOne))]
-   end
-  }.
+when_in_waiting_for_players_and_a_second_player_join_then_fsm_go_to_play_state_test() ->
+  Pid = 'a-pid',
+  Pid2 = 'a-second-pid',
+  meck:new(game, [passthrough]),
+  meck:expect(game, reply, fun(_, _) -> ok end),
+  meck:expect(game, ticker, fun() -> ok end),
 
-game_should_accept_join_request_from_players_test_() ->
-  {setup,
-   fun() ->
-       {ok, Game} = game:create(),
-       {ok, PlayerOne} = player:create("player one"),
-       {ok, PlayerTwo} = player:create("player two"),
-       [Game, PlayerOne, PlayerTwo]
-   end,
-   fun([Game, PlayerOne, PlayerTwo]) ->
-       game:destroy(Game),
-       player:destroy(PlayerOne),
-       player:destroy(PlayerTwo)
-   end,
-   fun([Game, PlayerOne, PlayerTwo]) ->
-       [?_assertMatch({ok, welcome}, game:join(Game, PlayerOne)),
-        ?_assertMatch({ok, welcome}, game:join(Game, PlayerTwo))]
-   end
-  }.
+  ?assertMatch(
+     {next_state, play, [Pid, Pid2]},
+     game:waiting_for_players({join, Pid2}, Pid2, [Pid])
+  ),
+  ?assertEqual(2, meck:num_calls(game, reply, '_')),
+  ?assertEqual(1, meck:num_calls(game, ticker, '_')),
 
-player_who_has_already_joined_could_not_re_join_when_the_game_is_ongoing_test_() ->
-  {setup,
-   fun() ->
-       {ok, Game} = game:create(),
-       {ok, PlayerOne} = player:create("player one"),
-       {ok, PlayerTwo} = player:create("player two"),
-       [Game, PlayerOne, PlayerTwo]
-   end,
-   fun([Game, PlayerOne, PlayerTwo]) ->
-       game:destroy(Game),
-       player:destroy(PlayerOne),
-       player:destroy(PlayerTwo)
-   end,
-   fun([Game, PlayerOne, PlayerTwo]) ->
-       [?_assertMatch({ok, welcome}, game:join(Game, PlayerOne)),
-        ?_assertMatch({ok, welcome}, game:join(Game, PlayerTwo)),
-        ?_assertMatch({error, already_joined}, game:join(Game, PlayerOne))]
-   end
-  }.
+  meck:unload(game).
 
-game_should_accept_two_players_max_test_() ->
-  {setup,
-   fun() ->
-       {ok, Game} = game:create(),
-       {ok, PlayerOne} = player:create("player one"),
-       {ok, PlayerTwo} = player:create("player two"),
-       {ok, PlayerThree} = player:create("player two"),
-       [Game, PlayerOne, PlayerTwo, PlayerThree]
-   end,
-   fun([Game, PlayerOne, PlayerTwo, PlayerThree]) ->
-       game:destroy(Game),
-       player:destroy(PlayerOne),
-       player:destroy(PlayerTwo),
-       player:destroy(PlayerThree)
-   end,
-   fun([Game, PlayerOne, PlayerTwo, PlayerThree]) ->
-       [?_assertMatch({ok, welcome}, game:join(Game, PlayerOne)),
-        ?_assertMatch({ok, welcome}, game:join(Game, PlayerTwo)),
-        ?_assertMatch({error, full}, game:join(Game, PlayerThree))]
-   end
-  }.
+when_in_waiting_for_players_the_same_player_cannot_join_twice_test() ->
+  Pid = self(),
+  ?assertMatch(
+     {next_state, waiting_for_players, [Pid]},
+     game:waiting_for_players({join, Pid}, Pid, [Pid])
+  ).
+
+%%% PLAY
+when_in_play_tick_ask_next_player_to_move_test() ->
+  meck:new(player, [non_strict]),
+  meck:expect(player, move, fun(_) -> ok end),
+  CurrentLoopData = ['player-1-pid', 'player-2-pid'],
+
+  ?assertMatch(
+     {next_state, play, ['player-2-pid', 'player-1-pid']},
+     game:play(tick, CurrentLoopData)
+  ),
+  ?assertEqual(1, meck:num_calls(player, move, ['player-1-pid'])),
+
+  meck:unload(player).
