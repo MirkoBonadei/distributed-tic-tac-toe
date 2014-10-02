@@ -16,7 +16,11 @@ ticker() ->
   erlang:send_after(?TICK_TIME, self(), ?TICK_MESSAGE).
 
 start_link() ->
-  gen_fsm:start_link(?MODULE, [], []).
+  gen_fsm:start_link(
+    ?MODULE, 
+    [], 
+    #{next_player => nil, other_player => nil, board => nil}
+).
 
 %% API
 join(GamePid, PlayerPid) ->
@@ -31,20 +35,20 @@ stop() ->
 terminate(_Reason, _State, _LoopData) ->
   ok.
 
-waiting_for_players({join, Pid}, Pid, []) ->
-  {next_state, waiting_for_players, [Pid]};
-waiting_for_players({join, Pid}, Pid, [Pid]) ->
-  {next_state, waiting_for_players, [Pid]};
-waiting_for_players({join, Pid2}, Pid2, [Pid]) ->
+waiting_for_players({join, Pid}, Pid, S = #{next_player := nil}) ->
+  {next_state, waiting_for_players, S#{next_player => Pid}};
+waiting_for_players({join, Pid}, Pid, S = #{next_player := Pid}) ->
+  {next_state, waiting_for_players, S};
+waiting_for_players({join, Pid2}, Pid2, S= #{next_player := Pid, other_player := nil}) ->
   ?MODULE:reply(Pid, ok),
   ?MODULE:reply(Pid2, ok),
   TickerPid = ?MODULE:ticker(),
   %% TODO: should I keep the ticket pid?
-  {next_state, play, [Pid, Pid2]}.
+  {next_state, play, S#{other_player => Pid2}}.
 
-play(tick, [PlayerOne, PlayerTwo]) ->
+play(tick, S = #{next_player := PlayerOne, other_player := PlayerTwo}) ->
   player:move(PlayerOne),
-  {next_state, play, [PlayerTwo, PlayerOne]}.
+  {next_state, play, S#{next_player => PlayerTwo, other_player => PlayerOne}}.
 
 over(_Msg, _LoopData) ->
   ok.
