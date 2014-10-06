@@ -1,138 +1,106 @@
 -module(board_tests).
-
 -include_lib("eunit/include/eunit.hrl").
 
--define(EMPTY_CELL, ' ').
+%% row_of_test() ->
+%%   ?assertEqual(1, board:row_of(0)),
+%%   ?assertEqual(1, board:row_of(1)),
+%%   ?assertEqual(1, board:row_of(2)),
+%%   ?assertEqual(2, board:row_of(3)),
+%%   ?assertEqual(2, board:row_of(4)),
+%%   ?assertEqual(2, board:row_of(5)),
+%%   ?assertEqual(3, board:row_of(6)),
+%%   ?assertEqual(3, board:row_of(7)),
+%%   ?assertEqual(3, board:row_of(8)).
 
-should_return_new_board_test() ->
-    ?assertEqual(
-       [
-        [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
-        [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
-        [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]
-       ],
-       board:new()
-      ).
+%% column_of_test() ->
+%%   ?assertEqual(1, board:column_of(0)),
+%%   ?assertEqual(2, board:column_of(1)),
+%%   ?assertEqual(3, board:column_of(2)),
+%%   ?assertEqual(1, board:column_of(3)),
+%%   ?assertEqual(2, board:column_of(4)),
+%%   ?assertEqual(3, board:column_of(5)),
+%%   ?assertEqual(1, board:column_of(6)),
+%%   ?assertEqual(2, board:column_of(7)),
+%%   ?assertEqual(3, board:column_of(8)).
 
-should_be_possible_to_make_legal_move_one_the_first_row_test() ->
-    Board = board:new(),
-    ?assertEqual(
-       [
-        ['X', ?EMPTY_CELL, ?EMPTY_CELL],
-        [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
-        [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]
-       ],
-       board:make_move(Board, 'X', 1, 1)
-      ).
+%% position_of_test() ->
+%%   ?assertEqual(0, board:position_of(1, 1)),
+%%   ?assertEqual(1, board:position_of(1, 2)),
+%%   ?assertEqual(2, board:position_of(1, 3)),
+%%   ?assertEqual(3, board:position_of(2, 1)),
+%%   ?assertEqual(4, board:position_of(2, 2)),
+%%   ?assertEqual(5, board:position_of(2, 3)),
+%%   ?assertEqual(6, board:position_of(3, 1)),
+%%   ?assertEqual(7, board:position_of(3, 2)),
+%%   ?assertEqual(8, board:position_of(3, 3)).
 
-should_be_possible_to_make_legal_move_one_the_second_row_test() ->
-    Board = board:new(),
-    ?assertEqual(
-       [
-        [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
-        [?EMPTY_CELL, 'X', ?EMPTY_CELL],
-        [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]
-       ],
-       board:make_move(Board, 'X', 2, 2)
-      ).
+%% move_test() ->
+%%   ?assertEqual(
+%%      [x, none, none, none, none, none, none, none, none],
+%%      board:move(board:create(), {1, 1, x})
+%%   ),
+%%   ?assertEqual(
+%%      [none, x, none, none, none, none, none, none, none],
+%%      board:move(board:create(), {1, 2, x})
+%%   ),
+%%   ?assertEqual(
+%%      [none, none, none, none, none, none, none, none, x],
+%%      board:move(board:create(), {3, 3, x})
+%%   ),
+%%   ?assertEqual(
+%%      [none, none, none, none, x, none, none, none, none],
+%%      board:move(board:create(), {2, 2, x})
+%%   ).
 
-should_be_possible_to_make_legal_move_one_the_third_row_test() ->
-    Board = board:new(),
-    ?assertEqual(
-       [
-        [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
-        [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
-        [?EMPTY_CELL, ?EMPTY_CELL, 'X']
-       ],
-       board:make_move(Board, 'X', 3, 3)
-      ).
+%% all_moves_are_available_at_the_beginning_test() ->
+%%   Board = board:create(),
+%%   Moves = board:available_moves(Board),
+%%   ?assertEqual(
+%%      [{1,1},{1,2},{1,3},{2,1},{2,2},{2,3},{3,1},{3,2},{3,3}],
+%%      Moves
+%%   ).
 
-should_be_possible_to_make_second_legal_move_test() ->
-    Board = [
-             ['Y', ?EMPTY_CELL, ?EMPTY_CELL],
-             [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
-             [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]
-            ],
-    ?assertEqual(
-       [
-        ['Y', 'X', ?EMPTY_CELL],
-        [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
-        [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]
-       ],
-       board:make_move(Board, 'X', 1, 2)
-      ).
+%% all_moves_are_available_but_one_after_first_move_test() ->
+%%   Board = board:move(board:create(), {1, 1, x}),
+%%   Moves = board:available_moves(Board),
+%%   ?assertEqual(
+%%      [{1,2},{1,3},{2,1},{2,2},{2,3},{3,1},{3,2},{3,3}],
+%%      Moves
+%%   ).
 
-should_reject_illegal_move_test() ->
-    BoardTime0 = board:new(),
-    BoardTime1 = board:make_move(BoardTime0, 'X', 3, 3),
-    ?assertThrow(
-       illegal_move,
-       board:make_move(BoardTime1, 'Y', 3, 3)
-      ).
+%% only_last_move_test() ->
+%%   Board = lists:foldl(
+%%     fun(Move, Board) -> board:move(Board, Move) end,
+%%     board:create(),
+%%     [{1,1,x}, {1,2,o}, {1,3,x}, {2,1,x}, {2,2,o}, {2,3,x}, {3,1,o}, {3,2,x}]
+%%   ),
+%%   Moves = board:available_moves(Board),
+%%   ?assertEqual([{3,3}], Moves).
 
-x_must_be_within_the_borders_of_the_board_wneh_a_move_is_made_test() ->
-    Board = board:new(),
-    ?assertThrow(
-       illegal_move,
-       board:make_move(Board, 'Y', 4, 1)
-      ).
+%% after_created_the_board_is_open_test() ->
+%%   ?assertEqual(open, board:check(board:create())).
 
-y_must_be_within_the_borders_of_the_board_wneh_a_move_is_made_test() ->
-    Board = board:new(),
-    ?assertThrow(
-       illegal_move,
-       board:make_move(Board, 'Y', 1, 4)
-      ).
+%% check_win_for_x_test() ->
+%%   ?assertEqual({win, x}, board:check([
+%%                                 x,x,x,
+%%                                 none,none,none,
+%%                                 none,none,none
+%%                                ])),
+%%   ?assertEqual({win, x}, board:check([
+%%                                 x,none,none,
+%%                                 x,none,none,
+%%                                 x,none,none
+%%                                ])),
+%%   ?assertEqual({win, x}, board:check([
+%%                                 x,none,none,
+%%                                 none,x,none,
+%%                                 none,none,x
+%%                                ])),
+%%   pass.
 
-should_detect_winning_row_test() ->
-    Board1 = [['X', 'X', 'X'],
-              [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
-              [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]],
-    Board2 = [[?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
-              ['X', 'X', 'X'],
-              [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]],
-    Board3 = [[?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
-              [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL],
-              ['X', 'X', 'X']],
-    ?assert(board:has_been_won_by(Board1, 'X')),
-    ?assert(board:has_been_won_by(Board2, 'X')),
-    ?assert(board:has_been_won_by(Board3, 'X')).
+%% check_tie_test() ->
+%%   ?assertEqual(tie, board:check([x,o,x,
+%%                            x,o,o,
+%%                            o,x,o
+%%                           ])).
 
-should_detect_winning_column_test() ->
-    Board1 = [['X', ?EMPTY_CELL, ?EMPTY_CELL],
-              ['X', ?EMPTY_CELL, ?EMPTY_CELL],
-              ['X', ?EMPTY_CELL, ?EMPTY_CELL]],
-    Board2 = [[?EMPTY_CELL, 'X', ?EMPTY_CELL],
-              [?EMPTY_CELL, 'X', ?EMPTY_CELL],
-              [?EMPTY_CELL, 'X', ?EMPTY_CELL]],
-    Board3 = [[?EMPTY_CELL, ?EMPTY_CELL, 'X'],
-              [?EMPTY_CELL, ?EMPTY_CELL, 'X'],
-              [?EMPTY_CELL, ?EMPTY_CELL, 'X']],
-    ?assert(board:has_been_won_by(Board1, 'X')),
-    ?assert(board:has_been_won_by(Board2, 'X')),
-    ?assert(board:has_been_won_by(Board3, 'X')).
-
-should_detect_winning_diagonal_test() ->
-    Board1 = [['X', ?EMPTY_CELL, ?EMPTY_CELL],
-              [?EMPTY_CELL, 'X', ?EMPTY_CELL],
-              [?EMPTY_CELL, ?EMPTY_CELL, 'X']],
-    Board2 = [[?EMPTY_CELL, ?EMPTY_CELL, 'X'],
-              [?EMPTY_CELL, 'X', ?EMPTY_CELL],
-              ['X', ?EMPTY_CELL, ?EMPTY_CELL]],
-    ?assert(board:has_been_won_by(Board1, 'X')),
-    ?assert(board:has_been_won_by(Board2, 'X')).
-
-should_detect_winning_minor_diagonal_with_a_busy_board_test() ->
-    Board = [['X', 'Y', 'X'],
-             ['Y', 'X', 'Y'],
-             ['X', ?EMPTY_CELL, ?EMPTY_CELL]],
-    ?assert(board:has_been_won_by(Board, 'X')).
-
-should_return_available_positions_test() ->
-    Board = [['X', ?EMPTY_CELL, ?EMPTY_CELL],
-             [?EMPTY_CELL, 'X', ?EMPTY_CELL],
-             [?EMPTY_CELL, ?EMPTY_CELL, 'X']],
-    ?assertEqual(
-       [{1, 2}, {1, 3}, {2, 1}, {2, 3}, {3, 1}, {3, 2}],
-       board:available_positions(Board)
-      ).

@@ -1,86 +1,56 @@
 -module(board).
--export([new/0, make_move/4, has_been_won_by/2, available_positions/1]).
+-export([create/0, display/1]).
+-export([available_moves/1, move/2, check/1]).
 
--define(EMPTY_CELL, ' ').
--define(EMPTY_ROW, [?EMPTY_CELL, ?EMPTY_CELL, ?EMPTY_CELL]).
--define(NUMBER_OF_ROWS, 3).
--define(NUMBER_OF_COLUMNS, 3).
+create() ->
+  [none, none, none, none, none, none, none, none, none].
 
-%%% public functions
+display(Board) ->
+  io:format("Board: ~p~n", [Board]).
 
-new() -> [?EMPTY_ROW, ?EMPTY_ROW, ?EMPTY_ROW].
-
-make_move(Board, Player, X, Y) when (X =< ?NUMBER_OF_ROWS) and (Y =< ?NUMBER_OF_COLUMNS) ->
-  make_move_helper(Board, Player, X, Y);
-make_move(_Board, _Player, _X, _Y) ->
-  throw(illegal_move).
-
-has_been_won_by(Board, Player) ->
-  is_there_a_winning_row_for_player(Board, Player) orelse
-  is_there_a_winning_column_for_player(Board, Player) orelse
-  is_there_a_winning_diagonal_for_player(Board, Player).
-
-available_positions([Row1, Row2, Row3]) ->
-  available_positions_by_row(1, Row1) ++ available_positions_by_row(2, Row2) ++ available_positions_by_row(3, Row3).
-
-%%% private functions
-
-make_move_helper([Row1, Row2, Row3], Player, 1, Y) ->
-  NewRow1 = update_row(Row1, Player, Y),
-  [NewRow1, Row2, Row3];
-make_move_helper([Row1, Row2, Row3], Player, 2, Y) ->
-  NewRow2 = update_row(Row2, Player, Y),
-  [Row1, NewRow2, Row3];
-make_move_helper([Row1, Row2, Row3], Player, 3, Y) ->
-  NewRow3 = update_row(Row3, Player, Y),
-  [Row1, Row2, NewRow3].
-
-available_positions_by_row(RowNumber, Row) ->
-  available_positions_by_row_acc(RowNumber, Row, [], 1).
-
-available_positions_by_row_acc(_RowNumber, [], Acc, _Position) ->
-  lists:reverse(Acc);
-available_positions_by_row_acc(RowNumber, [?EMPTY_CELL|Tail], Acc, Position) ->
-  available_positions_by_row_acc(RowNumber, Tail, [{RowNumber, Position}|Acc], Position + 1);
-available_positions_by_row_acc(RowNumber, [_Head|Tail], Acc, Position) ->
-  available_positions_by_row_acc(RowNumber, Tail, Acc, Position + 1).
-
-is_there_a_winning_row_for_player(Board, Player) ->
-  lists:any(fun(Row) -> lists:all(fun(Pos) -> Pos == Player end, Row) end, Board).
-
-is_there_a_winning_column_for_player(Board, Player) ->
-  lists:any(
-    fun(Column) -> lists:all(
-                     fun(Row) -> lists:nth(Column, Row) == Player end,
-                     Board
-                    )
-    end,
-    [1, 2, 3]
+available_moves(Board) ->
+  lists:reverse(
+    lists:foldl(
+      fun
+        ({none, Position}, Moves) ->
+          [{row_of(Position), column_of(Position)} | Moves];
+        ({_, _}, Moves) -> Moves
+      end,
+      [],
+      lists:zip(Board, lists:seq(0, length(Board) - 1))
+    )
   ).
 
-is_there_a_winning_diagonal_for_player(Board, Player) ->
-  is_main_diagonal_winning(Board, Player) orelse
-  is_minor_diagonal_winning(Board, Player).
+move(Board, {Row, Column, Symbol}) when (Symbol =:= x) or (Symbol =:= o) ->
+  Position = position_of(Row, Column),
+  case lists:nth(Position + 1, Board) of
+    none -> lists:sublist(Board, Position) ++ [Symbol] ++ lists:nthtail(Position + 1, Board);
+    _ -> Board
+  end.
 
-is_main_diagonal_winning([[Player, _, _], [_, Player, _], [_, _, Player]], Player) ->
-  true;
-is_main_diagonal_winning(_Board, _Player) ->
-  false.
+% symbol_at(Board, {Row, Column}) ->
+%   lists:nth(position_of(Row, Column) + 1, Board).
 
-is_minor_diagonal_winning([[_, _, Player], [_, Player, _], [Player, _, _]], Player) ->
-  true;
-is_minor_diagonal_winning(_Board, _Player) ->
-  false.
+check([X,X,X,_,_,_,_,_,_]) when (X =:= x) or (X =:= o)-> {win, X};
+check([_,_,_,X,X,X,_,_,_]) when (X =:= x) or (X =:= o)-> {win, X};
+check([_,_,_,_,_,_,X,X,X]) when (X =:= x) or (X =:= o)-> {win, X};
+check([X,_,_,X,_,_,X,_,_]) when (X =:= x) or (X =:= o)-> {win, X};
+check([_,X,_,_,X,_,_,X,_]) when (X =:= x) or (X =:= o)-> {win, X};
+check([_,_,X,_,_,X,_,_,X]) when (X =:= x) or (X =:= o)-> {win, X};
+check([X,_,_,_,X,_,_,_,X]) when (X =:= x) or (X =:= o)-> {win, X};
+check([_,_,X,_,X,_,X,_,_]) when (X =:= x) or (X =:= o)-> {win, X};
+check(Board) ->
+  case lists:all(fun(X) -> (X =:= x) or (X =:= o) end, Board) of
+    true -> tie;
+    _ -> open
+  end.
 
 
-update_row(Row, Player, Position) ->
-  update_row_acc(Row, Player, Position, [], 1).
+row_of(Position) when (Position >= 0) and (Position =< 8) ->
+  (Position div 3) + 1.
 
-update_row_acc([], _Player, _Position, Acc, _PosCounter) ->
-  lists:reverse(Acc);
-update_row_acc([?EMPTY_CELL|Tail], Player, Position, Acc, PosCounter) when Position == PosCounter ->
-  update_row_acc(Tail, Player, Position, [Player|Acc], PosCounter + 1);
-update_row_acc([Head|_Tail], _Player, Position, _Acc, PosCounter) when (Position == PosCounter) and (Head =/= ?EMPTY_CELL) ->
-  throw(illegal_move);
-update_row_acc([Head|Tail], Player, Position, Acc, PosCounter) ->
-  update_row_acc(Tail, Player, Position, [Head|Acc], PosCounter + 1).
+column_of(Position) when (Position >= 0) and (Position =< 8) ->
+  (Position rem 3) + 1.
+
+position_of(Row, Column) when (Row >= 1) and (Row =< 3) and (Column >= 1) and (Column =< 3) ->
+  (Row - 1) * 3 + (Column - 1).

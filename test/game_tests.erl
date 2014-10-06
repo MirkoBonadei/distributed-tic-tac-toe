@@ -31,7 +31,7 @@ when_in_waiting_for_players_and_a_second_player_join_then_fsm_go_to_play_state_t
     ),
     ?assertEqual(2, meck:num_calls(game, reply, '_')),
     ?assertEqual(1, meck:num_calls(game, ticker, '_')),
-    meck:unload(game).
+    meck:unload().
 
 when_in_waiting_for_players_the_same_player_cannot_join_twice_test() ->
     Pid = self(),
@@ -43,23 +43,82 @@ when_in_waiting_for_players_the_same_player_cannot_join_twice_test() ->
          Pid, 
          #{next_player => Pid, other_player => nil}
        )
-    ).
+    ),
+    meck:unload().
 
 %%% PLAY
 when_in_play_tick_ask_next_player_to_move_test() ->
     meck:new(player, [non_strict]),
-    meck:expect(player, move, fun(_) -> ok end),
+    meck:new(game, [passthrough]),
+    meck:new(board),
+    meck:expect(player, move, fun(player_one, board_before_move) -> board_after_move end),
+    meck:expect(board, check, fun(board_after_move) -> open end),
+    meck:expect(game, ticker, fun() -> ok end),
     CurrentLoopData = #{
-      next_player => 'player-1-pid', 
-      other_player => 'player-2-pid'
+      next_player => player_one, 
+      other_player => player_two,
+      board => board_before_move
     },
     ExpectedLoopData = #{
-      next_player => 'player-2-pid', 
-      other_player => 'player-1-pid'
+      next_player => player_two, 
+      other_player => player_one,
+      board => board_after_move
     },
     ?assertMatch(
        {next_state, play, ExpectedLoopData},
        game:play(tick, CurrentLoopData)
     ),
-    ?assertEqual(1, meck:num_calls(player, move, ['player-1-pid'])),
-    meck:unload(player).
+    ?assertEqual(1, meck:num_calls(player, move, [player_one, board_before_move])),
+    ?assertEqual(1, meck:num_calls(game, ticker, [])),
+    meck:unload().
+
+when_in_play_and_a_player_wins_the_game_test() ->
+    meck:new(player, [non_strict]),
+    meck:new(board),
+    meck:expect(player, move, fun(player_one, board_before_move) -> board_after_move end),
+    meck:expect(player, winner, fun(player_one) -> ok end),
+    meck:expect(player, loser, fun(player_two) -> ok end),
+    meck:expect(board, check, fun(board_after_move) -> {win, player_one} end),
+    CurrentLoopData = #{
+      next_player => player_one, 
+      other_player => player_two,
+      board => board_before_move
+    },
+    ExpectedLoopData = #{
+      next_player => player_one, 
+      other_player => player_two,
+      board => board_after_move
+    },
+    ?assertMatch(
+       {next_state, over, ExpectedLoopData},
+       game:play(tick, CurrentLoopData)
+    ),
+    ?assertEqual(1, meck:num_calls(player, move, [player_one, board_before_move])),
+    ?assertEqual(1, meck:num_calls(player, winner, [player_one])),
+    ?assertEqual(1, meck:num_calls(player, loser, [player_two])),
+    meck:unload().
+
+when_in_play_and_the_game_is_tied_test() ->
+    meck:new(player, [non_strict]),
+    meck:new(board),
+    meck:expect(player, move, fun(player_one, board_before_move) -> board_after_move end),
+    meck:expect(player, draw, fun(_) -> ok end),
+    meck:expect(board, check, fun(board_after_move) -> tie end),
+    CurrentLoopData = #{
+      next_player => player_one, 
+      other_player => player_two,
+      board => board_before_move
+    },
+    ExpectedLoopData = #{
+      next_player => player_one, 
+      other_player => player_two,
+      board => board_after_move
+    },
+    ?assertMatch(
+       {next_state, over, ExpectedLoopData},
+       game:play(tick, CurrentLoopData)
+    ),
+    ?assertEqual(1, meck:num_calls(player, move, [player_one, board_before_move])),
+    ?assertEqual(1, meck:num_calls(player, draw, [player_one])),
+    ?assertEqual(1, meck:num_calls(player, draw, [player_two])),
+    meck:unload().
