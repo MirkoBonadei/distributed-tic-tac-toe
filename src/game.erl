@@ -5,6 +5,7 @@
 -export([stop/0, terminate/3]).
 -export([waiting_for_players/3, play/2, over/2, handle_info/3]).
 -export([reply/2, ticker/0]).
+-export([code_change/4]).
 
 -define(TICK_TIME, 2000).
 -define(TICK_MESSAGE, "tick").
@@ -65,4 +66,7 @@ over(_Msg, _LoopData) ->
     ok.
 
 handle_info(_Info, _State, _LoopData) ->
+    ok.
+
+code_change(_, _, _, _) ->
     ok.
