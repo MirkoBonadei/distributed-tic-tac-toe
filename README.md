@@ -19,47 +19,4 @@ _Write a program that allows two players to have a game of Tic-Tac-Toe remotely.
 * release
 * HTTP api and easy web interface
 * test the FSM with QuickCheck or [PropEr](http://proper.softlab.ntua.gr/doc/overview-summary.html)
-
-### USAGE
-The usage of the game is really raw in this first phase of the project:
-
-```erlang
-83> c(board).
-{ok,board}
-94> c(dummy_player).
-{ok,dummy_player}
-95> c(game).
-{ok,game}
-96> G = game:start(dummy_player:start("Darth Vader"), dummy_player:start("Luke Skywalker")).
-<0.676.0>
-It is <0.675.0> turn...
-Player "Luke Skywalker" is choosing {1,1}
-The new board is [[<0.675.0>,' ',' '],[' ',' ',' '],[' ',' ',' ']]
-It is <0.674.0> turn...
-Player "Darth Vader" is choosing {1,2}
-The new board is [[<0.675.0>,<0.674.0>,' '],[' ',' ',' '],[' ',' ',' ']]
-It is <0.675.0> turn...
-Player "Luke Skywalker" is choosing {1,3}
-The new board is [[<0.675.0>,<0.674.0>,<0.675.0>],[' ',' ',' '],[' ',' ',' ']]
-It is <0.674.0> turn...
-Player "Darth Vader" is choosing {2,1}
-The new board is [[<0.675.0>,<0.674.0>,<0.675.0>],
-                  [<0.674.0>,' ',' '],
-                  [' ',' ',' ']]
-It is <0.675.0> turn...
-Player "Luke Skywalker" is choosing {2,2}
-The new board is [[<0.675.0>,<0.674.0>,<0.675.0>],
-                  [<0.674.0>,<0.675.0>,' '],
-                  [' ',' ',' ']]
-It is <0.674.0> turn...
-Player "Darth Vader" is choosing {2,3}
-The new board is [[<0.675.0>,<0.674.0>,<0.675.0>],
-                  [<0.674.0>,<0.675.0>,<0.674.0>],
-                  [' ',' ',' ']]
-It is <0.675.0> turn...
-Player "Luke Skywalker" is choosing {3,1}
-The new board is [[<0.675.0>,<0.674.0>,<0.675.0>],
-                  [<0.674.0>,<0.675.0>,<0.674.0>],
-                  [<0.675.0>,' ',' ']]
-Player <0.675.0> has won this tic tac toe
-```
+* write a usage section for this README
