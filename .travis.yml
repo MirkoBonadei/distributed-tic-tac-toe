@@ -1,6 +1,6 @@
 language: erlang
 notifications:
   email: mirko.bonadei@gmail.com
-otp_releases:
+otp_release:
   - 17.1
   - 17.0
