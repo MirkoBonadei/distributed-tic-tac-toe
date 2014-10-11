@@ -1,5 +1,5 @@
+[![Build Status](https://travis-ci.org/MirkoBonadei/distributed-tic-tac-toe.svg?branch=master)](https://travis-ci.org/MirkoBonadei/distributed-tic-tac-toe)
 ## Distributed Tic-Tac-Toe
-
 Distributed Tic-Tac-Toe kata in Erlang.
 
 The goal of this repository is to grow an Erlang project from `git init` to a nice end-to-end experience, passing from a raw code base to a more robust and OTP compliant one.
