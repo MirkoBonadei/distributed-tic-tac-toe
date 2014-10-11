@@ -9,6 +9,7 @@
 create(Name) ->
     gen_server:start_link(?MODULE, [Name], []).
 
+-spec destroy(pid()) -> ok.
 destroy(PlayerPid) ->
     gen_server:cast(PlayerPid, stop).
 
@@ -45,8 +46,8 @@ handle_cast(draw, Name) ->
     {noreply, Name}.
 
 handle_call({next_move, Board}, _From, Name) ->
-    AvailablePositions = board:available_positions(Board),
-    {reply, random_move(AvailablePositions), Name}.
+    AvailableMoves = board:available_moves(Board),
+    {reply, random_move(AvailableMoves), Name}.
 
 terminate(_Reason, _Name) ->
     ok.
