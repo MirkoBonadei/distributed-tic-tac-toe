@@ -1,11 +1,11 @@
 -module(board).
--export_type([board/0]).
+-export_type([board/0, symbol/0]).
 -export([create/0, display/1]).
 -export([available_moves/1, move/2, check/1]).
 
--type symbol() :: term().
+-type symbol() :: x | o.
 -type position() :: {1..3, 1..3}.
--opaque board() :: [symbol(), ...].
+-opaque board() :: [symbol() | none, ...].
 
 -spec create() -> board().
 create() ->
