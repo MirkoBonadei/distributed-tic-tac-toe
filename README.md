@@ -13,6 +13,7 @@ _Write a program that allows two players to have a game of Tic-Tac-Toe remotely.
 ### TODO
 * modules `game` is not automatically tested `[90% done, there is some refactoring to do and to test the over state]`
 * acceptance test
+* player module test
 * supervision and worst case management
 * application
 * release
