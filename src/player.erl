@@ -1,6 +1,6 @@
 -module(player).
 -export([create/1, destroy/1, join/2, next_move/2, winner/1, loser/1, draw/1]).
--export([init/1, handle_cast/2, handle_call/3, terminate/2]).
+-export([init/1, handle_cast/2, handle_call/3, handle_info/2, code_change/3, terminate/2]).
 -behaviour(gen_server).
 
 %%% Player API
@@ -47,6 +47,12 @@ handle_cast(draw, Name) ->
 handle_call({next_move, Board}, _From, Name) ->
   AvailableMoves = board:available_moves(Board),
   {reply, random_move(AvailableMoves), Name}.
+
+handle_info(_Request, Name) ->
+  {noreply, Name}.
+
+code_change(_, Name, _) ->
+  {ok, Name}.
 
 terminate(_Reason, _Name) ->
   ok.
