@@ -10,9 +10,14 @@ These are the instructions:
 
 _Write a program that allows two players to have a game of Tic-Tac-Toe remotely. The program should know whose turn it is and enforce taking it in turns to make moves. The program should know whether a move made by a player is legal (i.e., is that square empty?), and be capable of detecting when the game is won or drawn. The outcomes should be reported to both players along with the current state of the game (e.g., by refreshing the screen)._
 
-### TODO:
-* modules `game` is not automatically tested [90% done, there is some refactoring to do and to test the over state]
-* Test player join with QuickCheck or [PropEr](http://proper.softlab.ntua.gr/doc/overview-summary.html)
+### TODO
+* modules `game` is not automatically tested `[90% done, there is some refactoring to do and to test the over state]`
+* acceptance test
+* supervision and worst case management
+* application
+* release
+* HTTP api and easy web interface
+* test the FSM with QuickCheck or [PropEr](http://proper.softlab.ntua.gr/doc/overview-summary.html)
 
 ### USAGE
 The usage of the game is really raw in this first phase of the project:
