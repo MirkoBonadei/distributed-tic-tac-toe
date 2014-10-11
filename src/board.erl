@@ -1,13 +1,21 @@
 -module(board).
+-export_type([board/0]).
 -export([create/0, display/1]).
 -export([available_moves/1, move/2, check/1]).
 
+-type symbol() :: term().
+-type position() :: {1..3, 1..3}.
+-opaque board() :: [symbol(), ...].
+
+-spec create() -> board().
 create() ->
     [none, none, none, none, none, none, none, none, none].
 
+-spec display(board()) -> ok.
 display(Board) ->
     io:format("Board: ~p~n", [Board]).
 
+-spec available_moves(board()) -> [position()].
 available_moves(Board) ->
     lists:reverse(
       lists:foldl(
@@ -21,31 +29,32 @@ available_moves(Board) ->
        )
      ).
 
-move(Board, {Row, Column, Symbol}) when (Symbol =:= x) or (Symbol =:= o) ->
+-spec move(board(), {1..3, 1..3, symbol()}) -> board().
+move(Board, {Row, Column, Symbol}) ->
     Position = position_of(Row, Column),
     case lists:nth(Position + 1, Board) of
-        none -> lists:sublist(Board, Position) ++ [Symbol] ++ lists:nthtail(Position + 1, Board);
-        _ -> Board
+        none -> 
+            lists:sublist(Board, Position) ++ [Symbol] ++ lists:nthtail(Position + 1, Board);
+        _ -> 
+            Board
     end.
 
-                                                % symbol_at(Board, {Row, Column}) ->
-                                                %   lists:nth(position_of(Row, Column) + 1, Board).
-
-check([X,X,X,_,_,_,_,_,_]) when (X =:= x) or (X =:= o)-> {win, X};
-check([_,_,_,X,X,X,_,_,_]) when (X =:= x) or (X =:= o)-> {win, X};
-check([_,_,_,_,_,_,X,X,X]) when (X =:= x) or (X =:= o)-> {win, X};
-check([X,_,_,X,_,_,X,_,_]) when (X =:= x) or (X =:= o)-> {win, X};
-check([_,X,_,_,X,_,_,X,_]) when (X =:= x) or (X =:= o)-> {win, X};
-check([_,_,X,_,_,X,_,_,X]) when (X =:= x) or (X =:= o)-> {win, X};
-check([X,_,_,_,X,_,_,_,X]) when (X =:= x) or (X =:= o)-> {win, X};
-check([_,_,X,_,X,_,X,_,_]) when (X =:= x) or (X =:= o)-> {win, X};
+-spec check(board()) -> {win, symbol()} | tie | open.
+check([X,X,X,_,_,_,_,_,_]) when X =/= none -> {win, X};
+check([_,_,_,X,X,X,_,_,_]) when X =/= none -> {win, X};
+check([_,_,_,_,_,_,X,X,X]) when X =/= none -> {win, X};
+check([X,_,_,X,_,_,X,_,_]) when X =/= none -> {win, X};
+check([_,X,_,_,X,_,_,X,_]) when X =/= none -> {win, X};
+check([_,_,X,_,_,X,_,_,X]) when X =/= none -> {win, X};
+check([X,_,_,_,X,_,_,_,X]) when X =/= none -> {win, X};
+check([_,_,X,_,X,_,X,_,_]) when X =/= none -> {win, X};
 check(Board) ->
     case lists:all(fun(X) -> (X =:= x) or (X =:= o) end, Board) of
         true -> tie;
         _ -> open
     end.
 
-
+%% Internal functions
 row_of(Position) when (Position >= 0) and (Position =< 8) ->
     (Position div 3) + 1.
 
