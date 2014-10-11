@@ -54,3 +54,42 @@ column_of(Position) when (Position >= 0) and (Position =< 8) ->
 
 position_of(Row, Column) when (Row >= 1) and (Row =< 3) and (Column >= 1) and (Column =< 3) ->
     (Row - 1) * 3 + (Column - 1).
+
+%% internal funcions testing
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+row_of_test() ->
+    ?assertEqual(1, row_of(0)),
+    ?assertEqual(1, row_of(1)),
+    ?assertEqual(1, row_of(2)),
+    ?assertEqual(2, row_of(3)),
+    ?assertEqual(2, row_of(4)),
+    ?assertEqual(2, row_of(5)),
+    ?assertEqual(3, row_of(6)),
+    ?assertEqual(3, row_of(7)),
+    ?assertEqual(3, row_of(8)).
+
+column_of_test() ->
+    ?assertEqual(1, column_of(0)),
+    ?assertEqual(2, column_of(1)),
+    ?assertEqual(3, column_of(2)),
+    ?assertEqual(1, column_of(3)),
+    ?assertEqual(2, column_of(4)),
+    ?assertEqual(3, column_of(5)),
+    ?assertEqual(1, column_of(6)),
+    ?assertEqual(2, column_of(7)),
+    ?assertEqual(3, column_of(8)).
+
+position_of_test() ->
+    ?assertEqual(0, position_of(1, 1)),
+    ?assertEqual(1, position_of(1, 2)),
+    ?assertEqual(2, position_of(1, 3)),
+    ?assertEqual(3, position_of(2, 1)),
+    ?assertEqual(4, position_of(2, 2)),
+    ?assertEqual(5, position_of(2, 3)),
+    ?assertEqual(6, position_of(3, 1)),
+    ?assertEqual(7, position_of(3, 2)),
+    ?assertEqual(8, position_of(3, 3)).
+
+-endif.
