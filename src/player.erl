@@ -1,5 +1,5 @@
 -module(player).
--export([create/1, destroy/1, join/2, next_move/2, winner/1, loser/1, draw/1]).
+-export([create/1, destroy/1, join/2, move/2, winner/1, loser/1, draw/1]).
 -export([init/1, handle_cast/2, handle_call/3, handle_info/2, code_change/3, terminate/2]).
 -behaviour(gen_server).
 
@@ -15,7 +15,7 @@ destroy(PlayerPid) ->
 join(PlayerPid, GamePid) ->
   game:join(GamePid, PlayerPid).
 
-next_move(PlayerPid, Board) ->
+move(PlayerPid, Board) ->
   gen_server:call(PlayerPid, {next_move, Board}).
 
 winner(PlayerPid) ->
