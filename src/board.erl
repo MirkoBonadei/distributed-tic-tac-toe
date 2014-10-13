@@ -1,5 +1,5 @@
 -module(board).
--export_type([board/0, symbol/0]).
+-export_type([board/0, symbol/0, position/0]).
 -export([create/0, display/1]).
 -export([available_moves/1, move/2, check/1]).
 
@@ -21,8 +21,9 @@ available_moves(Board) ->
     lists:foldl(
       fun
         ({none, Position}, Moves) ->
-                         [{row_of(Position), column_of(Position)} | Moves];
-            ({_, _}, Moves) -> Moves
+          [{row_of(Position), column_of(Position)} | Moves];
+        ({_, _}, Moves) ->
+          Moves
       end,
       [],
       lists:zip(Board, lists:seq(0, length(Board) - 1))
