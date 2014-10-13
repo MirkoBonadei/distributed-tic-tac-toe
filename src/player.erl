@@ -74,7 +74,7 @@ code_change(_OldVsn, State, _Extra) ->
   {ok, State}.
 
 -spec terminate(normal | shutdown | {shutdown, term()} | term(), {string(), board:symbol()}) -> ok.
-terminate(_Reason, State) ->
+terminate(_Reason, _State) ->
   ok.
 
 
