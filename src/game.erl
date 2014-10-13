@@ -11,6 +11,7 @@
 
 % Public
 
+-spec start_link() -> {ok, pid()} | ignore | {error, {already_started, pid()} | term()}.
 start_link() ->
   gen_fsm:start_link(
     ?MODULE,
@@ -18,9 +19,11 @@ start_link() ->
     []
   ).
 
+-spec join(pid(), pid()) -> ok.
 join(GamePid, PlayerPid) ->
   gen_fsm:sync_send_event(GamePid, {join, PlayerPid}).
 
+-spec stop() -> ok.
 stop() ->
   ok.
 
@@ -47,6 +50,8 @@ code_change(_OldVsn, State, LoopData, _Extra) ->
 
 % gen_fsm States
 
+-spec waiting_for_players({join, pid()}, {pid(), reference()}, map()) ->
+  {next_state, waiting_for_players | play, map()}.
 waiting_for_players({join, Pid}, Pid, S = #{next_player := nil}) ->
   {next_state, waiting_for_players, S#{next_player => Pid}};
 waiting_for_players({join, Pid}, Pid, S = #{next_player := Pid}) ->
@@ -57,6 +62,7 @@ waiting_for_players({join, Pid2}, Pid2, S= #{next_player := Pid, other_player :=
   ?MODULE:ticker(),
   {next_state, play, S#{other_player => Pid2}}.
 
+-spec play(tick, map()) -> {next_state, play | over, map()}.
 play(tick, S = #{next_player := PlayerOne, other_player := PlayerTwo, board := Board}) ->
   UpdatedBoard = player:move(PlayerOne, Board),
   case board:check(UpdatedBoard) of
@@ -73,6 +79,7 @@ play(tick, S = #{next_player := PlayerOne, other_player := PlayerTwo, board := B
       {next_state, over, S#{board => UpdatedBoard}}
   end.
 
+% TODO: what should we do here?
 over(_Msg, _LoopData) ->
   ok.
 
