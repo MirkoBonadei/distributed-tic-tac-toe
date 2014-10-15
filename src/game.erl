@@ -15,7 +15,7 @@
 start_link() ->
   gen_fsm:start_link(
     ?MODULE,
-    #{next_player => nil, other_player => nil, board => nil},
+    nil,
     []
   ).
 
@@ -29,8 +29,13 @@ stop() ->
 
 % gen_fsm Callbacks
 
-init(LoopData) ->
-  {ok, waiting_for_players, LoopData}.
+init(_) ->
+  InitialLoopData = #{
+    next_player => nil, 
+    other_player => nil, 
+    board => board:create()
+  },
+  {ok, waiting_for_players, InitialLoopData}.
 
 terminate(_Reason, _State, _LoopData) ->
   ok.

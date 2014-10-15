@@ -1,6 +1,18 @@
 -module(game_tests).
 -include_lib("eunit/include/eunit.hrl").
 
+%%% INITIALIZATION
+state_is_correct_right_after_the_initialization_test() ->
+  ExpectedState = #{
+    next_player => nil, 
+    other_player => nil, 
+    board => board:create()
+  },
+  ?assertMatch(
+     {ok, waiting_for_players, ExpectedState},
+     game:init(something_we_do_not_care)
+  ).
+
 %%% WAITING_FOR_PLAYERS
 when_in_waiting_for_players_a_player_can_join_test() ->
     Pid = self(),
