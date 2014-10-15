@@ -39,8 +39,8 @@ when_in_waiting_for_players_a_player_can_join_test() ->
     ).
 
 when_in_waiting_for_players_and_a_second_player_join_then_fsm_go_to_play_state_test() ->
-    NextPlayerFrom = {Pid = 'a-pid', erlang:make_ref()},
-    SecondPlayerFrom = {Pid2 = 'a-second-pid', erlang:make_ref()},
+    NextPlayerFrom = {Pid = generate_pid(), erlang:make_ref()},
+    OtherPlayerFrom = {Pid2 = generate_pid(), erlang:make_ref()},
     meck:new(game, [passthrough]),
     meck:expect(game, reply, fun(_, _) -> ok end),
     meck:expect(game, ticker, fun() -> ok end),
@@ -53,7 +53,7 @@ when_in_waiting_for_players_and_a_second_player_join_then_fsm_go_to_play_state_t
        {next_state, play, ExpectedLoopData},
        game:waiting_for_players(
          {join, Pid2}, 
-         SecondPlayerFrom, 
+         OtherPlayerFrom, 
          #{
            next_player => Pid, 
            other_player => nil,
@@ -164,3 +164,8 @@ when_in_play_and_the_game_is_tied_test() ->
     ?assertEqual(1, meck:num_calls(player, draw, [player_one])),
     ?assertEqual(1, meck:num_calls(player, draw, [player_two])),
     meck:unload().
+
+%% Private
+generate_pid() ->
+  Pid = spawn(fun() -> ok end),
+  Pid.
