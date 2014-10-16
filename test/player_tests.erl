@@ -1,38 +1,23 @@
 -module(player_tests).
-
 -include_lib("eunit/include/eunit.hrl").
-% -include_lib("include/testing_macros.hrl").
 
-% -define(TEST_TIMEOUT, 1000).
+when_player_is_asked_to_join_the_request_is_forwarded_to_the_game_test() ->
+  meck:new(game),
+  meck:expect(game, join, fun(_, _) -> ok end),
+  GamePid = generate_pid(),
+  Result = player:handle_call(
+    {join, GamePid}, 
+    {self(), erlang:make_ref()},
+    {'a-name', x}
+  ),
+  ?assertEqual(1, meck:num_calls(game, join, '_')),
+  ?assertMatch(
+    {reply, ok, {'a-name', x}},
+    Result
+  ),
+  meck:unload().
 
-% player_should_be_created_and_destroyed_test() ->
-%   {ok, PlayerPid} = player:create("darth-vader"),
-%   ?assert(erlang:is_process_alive(PlayerPid)),
-%   ?assertProcessDownAfter(
-%      PlayerPid,
-%      ?TEST_TIMEOUT,
-%      fun() -> player:destroy(PlayerPid) end
-%   ).
-
-% player_should_ask_game_to_join_test_() ->
-%   {setup,
-%    fun() ->
-%        {ok, PlayerPid} = player:create("luke"),
-%        ok = meck:new(game, [passthrough]),
-%        {ok, GamePid} = game:create(),
-%        [GamePid, PlayerPid]
-%     end,
-%    fun([GamePid, PlayerPid]) ->
-%        ok = meck:unload(game),
-%        game:destroy(GamePid),
-%        player:destroy(PlayerPid)
-%    end,
-%    fun([GamePid, PlayerPid]) ->
-%       meck:expect(game, join, fun(P1, P2) when is_pid(P1) and is_pid(P2) -> {ok, welcome} end),
-%       player:join(PlayerPid, GamePid),
-%       [
-%           ?_assert(meck:called(game, join, [GamePid, PlayerPid])),
-%           ?_assert(meck:validate(game))
-%       ]
-%    end
-%   }.
+%% Private
+generate_pid() ->
+  Pid = spawn(fun() -> ok end),
+  Pid.
