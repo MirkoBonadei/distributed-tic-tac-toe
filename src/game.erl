@@ -40,7 +40,8 @@ init(_) ->
 terminate(_Reason, _State, _LoopData) ->
   ok.
 
-handle_info(_Info, State, LoopData) ->
+handle_info(tick, State, LoopData) ->
+  gen_fsm:send_event(self(), ?TICK_MESSAGE),
   {next_state, State, LoopData}.
 
 handle_event(_Event, State, LoopData) ->
