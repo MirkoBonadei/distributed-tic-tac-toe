@@ -7,7 +7,7 @@
 -export([reply/2, ticker/0]).
 
 -define(TICK_TIME, 2000).
--define(TICK_MESSAGE, "tick").
+-define(TICK_MESSAGE, tick).
 
 % Public
 
