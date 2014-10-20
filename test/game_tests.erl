@@ -6,8 +6,8 @@
 %%% INITIALIZATION
 state_is_correct_right_after_the_initialization_test() ->
   ExpectedState = #{
-    next_player => nil, 
-    other_player => nil, 
+    next_player => nil,
+    other_player => nil,
     board => ?EMPTY_BOARD
   },
   ?assertMatch(
@@ -19,7 +19,7 @@ state_is_correct_right_after_the_initialization_test() ->
 when_in_waiting_for_players_a_player_can_join_test() ->
     From = {Pid = self(), erlang:make_ref()},
     ExpectedLoopData = #{
-      next_player => Pid, 
+      next_player => Pid,
       other_player => nil,
       board => ?EMPTY_BOARD,
       next_player_from => From
@@ -27,11 +27,11 @@ when_in_waiting_for_players_a_player_can_join_test() ->
     ?assertMatch(
        {next_state, waiting_for_players, ExpectedLoopData},
        game:waiting_for_players(
-         {join, Pid}, 
-         From, 
+         {join, Pid},
+         From,
          #{
-           next_player => nil, 
-           other_player => nil, 
+           next_player => nil,
+           other_player => nil,
            board => ?EMPTY_BOARD,
            next_player_from => From
          }
@@ -45,17 +45,17 @@ when_in_waiting_for_players_and_a_second_player_join_then_fsm_go_to_play_state_t
     meck:expect(game, reply, fun(_, _) -> ok end),
     meck:expect(game, ticker, fun() -> ok end),
     ExpectedLoopData = #{
-      next_player => Pid, 
+      next_player => Pid,
       other_player => Pid2,
       board => ?EMPTY_BOARD
     },
     ?assertMatch(
        {next_state, play, ExpectedLoopData},
        game:waiting_for_players(
-         {join, Pid2}, 
-         OtherPlayerFrom, 
+         {join, Pid2},
+         OtherPlayerFrom,
          #{
-           next_player => Pid, 
+           next_player => Pid,
            other_player => nil,
            next_player_from => NextPlayerFrom,
            board => ?EMPTY_BOARD
@@ -69,7 +69,7 @@ when_in_waiting_for_players_and_a_second_player_join_then_fsm_go_to_play_state_t
 when_in_waiting_for_players_the_same_player_cannot_join_twice_test() ->
     From = {Pid = self(), erlang:make_ref()},
     ExpectedLoopData = #{
-      next_player => Pid, 
+      next_player => Pid,
       other_player => nil,
       board => ?EMPTY_BOARD,
       next_player_from => From
@@ -77,10 +77,10 @@ when_in_waiting_for_players_the_same_player_cannot_join_twice_test() ->
     ?assertMatch(
        {next_state, waiting_for_players, ExpectedLoopData},
        game:waiting_for_players(
-         {join, Pid}, 
-         From, 
+         {join, Pid},
+         From,
          #{
-           next_player => Pid, 
+           next_player => Pid,
            other_player => nil,
            board => ?EMPTY_BOARD,
            next_player_from => From
@@ -97,12 +97,12 @@ when_in_play_tick_ask_next_player_to_move_test() ->
     meck:expect(board, check, fun(board_after_move) -> open end),
     meck:expect(game, ticker, fun() -> ok end),
     CurrentLoopData = #{
-      next_player => player_one, 
+      next_player => player_one,
       other_player => player_two,
       board => board_before_move
     },
     ExpectedLoopData = #{
-      next_player => player_two, 
+      next_player => player_two,
       other_player => player_one,
       board => board_after_move
     },
@@ -122,12 +122,12 @@ when_in_play_and_a_player_wins_the_game_test() ->
     meck:expect(player, loser, fun(player_two) -> ok end),
     meck:expect(board, check, fun(board_after_move) -> {win, player_one} end),
     CurrentLoopData = #{
-      next_player => player_one, 
+      next_player => player_one,
       other_player => player_two,
       board => board_before_move
     },
     ExpectedLoopData = #{
-      next_player => player_one, 
+      next_player => player_one,
       other_player => player_two,
       board => board_after_move
     },
@@ -147,12 +147,12 @@ when_in_play_and_the_game_is_tied_test() ->
     meck:expect(player, draw, fun(_) -> ok end),
     meck:expect(board, check, fun(board_after_move) -> tie end),
     CurrentLoopData = #{
-      next_player => player_one, 
+      next_player => player_one,
       other_player => player_two,
       board => board_before_move
     },
     ExpectedLoopData = #{
-      next_player => player_one, 
+      next_player => player_one,
       other_player => player_two,
       board => board_after_move
     },
@@ -164,6 +164,20 @@ when_in_play_and_the_game_is_tied_test() ->
     ?assertEqual(1, meck:num_calls(player, draw, [player_one])),
     ?assertEqual(1, meck:num_calls(player, draw, [player_two])),
     meck:unload().
+
+acceptance_test_() ->
+  {timeout, 10000, acceptance_happy_path()}.
+
+acceptance_happy_path() ->
+  fun() ->
+    {ok, G} = game:start_link(),
+    {ok, P1} = player:start_link("Gabriele", x),
+    {ok, P2} = player:start_link("Mirko", o),
+    spawn(fun() -> player:join(P1, G) end),
+    spawn(fun() -> player:join(P2, G) end),
+    timer:sleep(5000),
+    ?assert(game:is_over(G))
+  end.
 
 %% Private
 generate_pid() ->

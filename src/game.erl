@@ -1,12 +1,12 @@
 -module(game).
 -behaviour(gen_fsm).
 
--export([join/2, stop/0, start_link/0]).
+-export([join/2, stop/0, start_link/0, is_over/1]).
 -export([init/1, terminate/3, handle_info/3, handle_event/3, handle_sync_event/4, code_change/4]).
--export([waiting_for_players/3, play/2, over/2]).
+-export([waiting_for_players/3, play/2, play/3, over/3]).
 -export([reply/2, ticker/0]).
 
--define(TICK_TIME, 2000).
+-define(TICK_TIME, 100).
 -define(TICK_MESSAGE, tick).
 
 % Public
@@ -23,6 +23,10 @@ start_link() ->
 join(GamePid, PlayerPid) ->
   gen_fsm:sync_send_event(GamePid, {join, PlayerPid}).
 
+-spec is_over(pid()) -> boolean().
+is_over(GamePid) ->
+  gen_fsm:sync_send_event(GamePid, is_over).
+
 -spec stop() -> ok.
 stop() ->
   ok.
@@ -31,8 +35,8 @@ stop() ->
 
 init(_) ->
   InitialLoopData = #{
-    next_player => nil, 
-    other_player => nil, 
+    next_player => nil,
+    other_player => nil,
     board => board:create()
   },
   {ok, waiting_for_players, InitialLoopData}.
@@ -58,15 +62,18 @@ code_change(_OldVsn, State, LoopData, _Extra) ->
 
 -spec waiting_for_players({join, pid()}, {pid(), reference()}, map()) ->
   {next_state, waiting_for_players | play, map()}.
+waiting_for_players(is_over, From, S) ->
+  ?MODULE:reply(From, false),
+  {next_state, waiting_for_players, S};
 waiting_for_players({join, Pid}, From = {Pid, _Ref}, S = #{next_player := nil}) ->
   {next_state, waiting_for_players, S#{next_player => Pid, next_player_from => From}};
 waiting_for_players({join, Pid}, {Pid, _Ref}, S = #{next_player := Pid}) ->
   {next_state, waiting_for_players, S};
 waiting_for_players(
-  {join, SecondPlayerPid}, 
-  OtherPlayerFrom = {SecondPlayerPid, _Tag}, 
+  {join, SecondPlayerPid},
+  OtherPlayerFrom = {SecondPlayerPid, _Tag},
   #{
-    next_player := NextPlayerPid, 
+    next_player := NextPlayerPid,
     other_player := nil,
     next_player_from := NextPlayerFrom,
     board := Board
@@ -76,6 +83,11 @@ waiting_for_players(
     ?MODULE:ticker(),
     LoopData = #{next_player => NextPlayerPid, other_player => SecondPlayerPid, board => Board},
     {next_state, play, LoopData}.
+
+-spec play(is_over, {pid(), reference()}, map()) -> {next_state, play, map()}.
+play(is_over, From, S) ->
+  ?MODULE:reply(From, false),
+  {next_state, play, S}.
 
 -spec play(tick, map()) -> {next_state, play | over, map()}.
 play(tick, S = #{next_player := PlayerOne, other_player := PlayerTwo, board := Board}) ->
@@ -95,7 +107,10 @@ play(tick, S = #{next_player := PlayerOne, other_player := PlayerTwo, board := B
   end.
 
 % TODO: what should we do here?
-over(_Msg, _LoopData) ->
+over(is_over, From, S) ->
+  ?MODULE:reply(From, true),
+  {next_state, over, S};
+over(_Msg, _From, _LoopData) ->
   ok.
 
 
