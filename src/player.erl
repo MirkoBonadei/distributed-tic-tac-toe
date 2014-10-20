@@ -15,7 +15,7 @@ stop(PlayerPid) ->
 
 -spec join(pid(), pid()) -> ok.
 join(PlayerPid, GamePid) ->
-  game:join(GamePid, PlayerPid).
+  gen_server:call(PlayerPid, {join, GamePid}).
 
 -spec move(pid(), board:board()) -> board:board().
 move(PlayerPid, Board) ->
@@ -57,7 +57,12 @@ handle_cast(draw, {Name, Symbol}) ->
   {noreply, {Name, Symbol}}.
 
 -spec handle_call({next_move, board:board()}, {pid(), reference()}, {string(), board:symbol()}) ->
-  {reply, board:board(), {string(), board:symbol()}}.
+                     {reply, board:board(), {string(), board:symbol()}};
+                 ({join, pid()}, {pid(), reference()}, {string(), board:symbol()}) ->
+                     {reply, ok, {string(), board:symbol()}}.
+handle_call({join, GamePid}, _From, {Name, Symbol}) ->
+  game:join(GamePid, self()),
+  {reply, ok, {Name, Symbol}};
 handle_call({next_move, Board}, _From, {Name, Symbol}) ->
   {X,Y} = random_move(board:available_moves(Board)),
   BoardAfterMove = board:move(Board, {X, Y, Symbol}),

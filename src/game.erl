@@ -7,7 +7,7 @@
 -export([reply/2, ticker/0]).
 
 -define(TICK_TIME, 2000).
--define(TICK_MESSAGE, "tick").
+-define(TICK_MESSAGE, tick).
 
 % Public
 
@@ -15,7 +15,7 @@
 start_link() ->
   gen_fsm:start_link(
     ?MODULE,
-    #{next_player => nil, other_player => nil, board => nil},
+    nil,
     []
   ).
 
@@ -29,13 +29,19 @@ stop() ->
 
 % gen_fsm Callbacks
 
-init(LoopData) ->
-  {ok, waiting_for_players, LoopData}.
+init(_) ->
+  InitialLoopData = #{
+    next_player => nil, 
+    other_player => nil, 
+    board => board:create()
+  },
+  {ok, waiting_for_players, InitialLoopData}.
 
 terminate(_Reason, _State, _LoopData) ->
   ok.
 
-handle_info(_Info, State, LoopData) ->
+handle_info(tick, State, LoopData) ->
+  gen_fsm:send_event(self(), ?TICK_MESSAGE),
   {next_state, State, LoopData}.
 
 handle_event(_Event, State, LoopData) ->
@@ -52,15 +58,24 @@ code_change(_OldVsn, State, LoopData, _Extra) ->
 
 -spec waiting_for_players({join, pid()}, {pid(), reference()}, map()) ->
   {next_state, waiting_for_players | play, map()}.
-waiting_for_players({join, Pid}, Pid, S = #{next_player := nil}) ->
-  {next_state, waiting_for_players, S#{next_player => Pid}};
-waiting_for_players({join, Pid}, Pid, S = #{next_player := Pid}) ->
+waiting_for_players({join, Pid}, From = {Pid, _Ref}, S = #{next_player := nil}) ->
+  {next_state, waiting_for_players, S#{next_player => Pid, next_player_from => From}};
+waiting_for_players({join, Pid}, {Pid, _Ref}, S = #{next_player := Pid}) ->
   {next_state, waiting_for_players, S};
-waiting_for_players({join, Pid2}, Pid2, S= #{next_player := Pid, other_player := nil}) ->
-  ?MODULE:reply(Pid, ok),
-  ?MODULE:reply(Pid2, ok),
-  ?MODULE:ticker(),
-  {next_state, play, S#{other_player => Pid2}}.
+waiting_for_players(
+  {join, SecondPlayerPid}, 
+  OtherPlayerFrom = {SecondPlayerPid, _Tag}, 
+  #{
+    next_player := NextPlayerPid, 
+    other_player := nil,
+    next_player_from := NextPlayerFrom,
+    board := Board
+  }) when NextPlayerPid =/= SecondPlayerPid ->
+    ?MODULE:reply(NextPlayerFrom, ok),
+    ?MODULE:reply(OtherPlayerFrom, ok),
+    ?MODULE:ticker(),
+    LoopData = #{next_player => NextPlayerPid, other_player => SecondPlayerPid, board => Board},
+    {next_state, play, LoopData}.
 
 -spec play(tick, map()) -> {next_state, play | over, map()}.
 play(tick, S = #{next_player := PlayerOne, other_player := PlayerTwo, board := Board}) ->
